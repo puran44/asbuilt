@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 1580" width="1120" height="1580"
+     color="#2A2822" font-family="ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace">
+  <title>03 - When a question is asked</title>
+  <rect x="0" y="0" width="1120" height="1580" fill="#FFFFFF"/>
+
+      <defs>
+        <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
+                markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- START -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="380" y="20" width="280" height="48" rx="24" fill="#FFFFFF"
+              stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="49" text-anchor="middle">User types a question</text>
+      </g>
+      <line x1="520" y1="68" x2="520" y2="108" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- n1 decision: alias match -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="340" y="110" width="360" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="135" text-anchor="middle">Does any alias in the project_alias table</text>
+        <text x="520" y="153" text-anchor="middle">match the question? (longest first · word boundary)</text>
+      </g>
+
+      <!-- NO → right lane: whole mailbox search -->
+      <path d="M700,140 L830,140 L830,220" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="740" y="132" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <text x="740" y="152" font-family="ui-monospace,monospace" font-size="10"
+            fill="currentColor" opacity=".7">no job scope</text>
+
+      <!-- YES → down -->
+      <path d="M520,170 L520,210" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="530" y="200" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- LEFT LANE (project-scoped) -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="330" y="210" width="380" height="60" rx="6"
+              fill="rgba(226,79,59,.14)" stroke="#E24F3B" stroke-width="1.5"/>
+        <text x="520" y="235" text-anchor="middle" font-size="12.5">Reserve 8 recency slots</text>
+        <text x="520" y="253" text-anchor="middle" font-size="11" fill="currentColor" opacity=".85">
+          the project's newest 8 messages, claimed before search</text>
+      </g>
+      <line x1="520" y1="270" x2="520" y2="310" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="360" y="310" width="320" height="44" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="331" text-anchor="middle">FTS message_fts, scoped to project</text>
+        <text x="520" y="346" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">
+          add to the 20-slot budget by rank</text>
+      </g>
+      <line x1="520" y1="354" x2="520" y2="390" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="360" y="390" width="320" height="44" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="411" text-anchor="middle">FTS attachment_fts, scoped to project</text>
+        <text x="520" y="426" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">
+          catches "see attached" mail whose text is only in the PDF</text>
+      </g>
+      <line x1="520" y1="434" x2="520" y2="470" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="360" y="470" width="320" height="44" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="491" text-anchor="middle">Backfill remaining slots by recency</text>
+      </g>
+
+      <!-- RIGHT LANE (no project) -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="740" y="220" width="220" height="60" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="850" y="245" text-anchor="middle">FTS whole mailbox,</text>
+        <text x="850" y="263" text-anchor="middle">bodies + subjects</text>
+      </g>
+      <line x1="850" y1="280" x2="850" y2="320" stroke="currentColor" marker-end="url(#a3)"/>
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="740" y="320" width="220" height="60" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="850" y="345" text-anchor="middle">FTS whole mailbox,</text>
+        <text x="850" y="363" text-anchor="middle">document text</text>
+      </g>
+
+      <!-- lanes MERGE -->
+      <line x1="520" y1="514" x2="520" y2="580" stroke="currentColor"/>
+      <path d="M850,380 L850,554 L520,554" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a3)"/>
+      <line x1="520" y1="554" x2="520" y2="600" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- n7 decision: any results? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="380" y="600" width="280" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="625" text-anchor="middle">Any messages retrieved?</text>
+        <text x="520" y="643" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">
+          (of the 20-slot budget)</text>
+      </g>
+
+      <!-- NO → left → NOT FOUND circle -->
+      <path d="M380,630 L200,630 L200,700" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a3)"/>
+      <text x="220" y="622" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <circle cx="200" cy="736" r="42" fill="rgba(226,79,59,.15)"
+              stroke="#E24F3B" stroke-width="2"/>
+      <text x="200" y="732" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#E24F3B" letter-spacing=".14em" font-weight="600">NOT FOUND</text>
+      <text x="200" y="748" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">"I couldn't find any</text>
+      <text x="200" y="759" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">messages about that"</text>
+
+      <!-- YES → down -->
+      <path d="M520,660 L520,700" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="530" y="690" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- Clean bodies -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="320" y="700" width="400" height="76" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="721" text-anchor="middle" font-size="12.5">Clean each retrieved message</text>
+        <text x="520" y="740" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · strip quoted history at "On X wrote:" markers</text>
+        <text x="520" y="754" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · drop this sender's learned boilerplate lines</text>
+        <text x="520" y="768" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · replace tracking URLs · cap body at 1,200 chars</text>
+      </g>
+      <line x1="520" y1="776" x2="520" y2="812" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- Attach document text under budget -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="320" y="812" width="400" height="76" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="833" text-anchor="middle" font-size="12.5">Attach document text under budget</text>
+        <text x="520" y="852" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · 4,000 chars per doc that matched the question</text>
+        <text x="520" y="866" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · 800 for incidental attachments · 30,000 total cap</text>
+        <text x="520" y="880" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · scans labelled "[text not readable]" — never sent as blank</text>
+      </g>
+      <line x1="520" y1="888" x2="520" y2="924" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- MODEL CALL -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="340" y="924" width="360" height="76" rx="4"
+              fill="rgba(226,79,59,.14)" stroke="#E24F3B" stroke-width="1.5"/>
+        <text x="520" y="947" text-anchor="middle" font-size="13" fill="#FF6E58"
+              letter-spacing=".05em">claude-sonnet-5</text>
+        <text x="520" y="965" text-anchor="middle" font-size="11" fill="currentColor" opacity=".85">
+          structured output: { answer, message_ids[], found }</text>
+        <text x="520" y="982" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">
+          system prompt: use only these messages · cite everything</text>
+        <text x="520" y="994" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">
+          absence of evidence is a finding, not a gap to fill</text>
+      </g>
+      <line x1="520" y1="1000" x2="520" y2="1036" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- Validate citations -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="320" y="1036" width="400" height="60" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="1058" text-anchor="middle" font-size="12.5">
+          Validate every citation</text>
+        <text x="520" y="1076" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          drop any message_id not in the retrieved set (invented IDs happen)</text>
+      </g>
+      <line x1="520" y1="1096" x2="520" y2="1132" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- Final decision: citations survived AND found=true -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="320" y="1132" width="400" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="1157" text-anchor="middle">At least one citation survived AND</text>
+        <text x="520" y="1175" text-anchor="middle">the model said found = true?</text>
+      </g>
+
+      <!-- NO → left → NOT FOUND -->
+      <path d="M320,1162 L160,1162 L160,1230" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a3)"/>
+      <text x="180" y="1154" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <circle cx="160" cy="1266" r="42" fill="rgba(226,79,59,.15)"
+              stroke="#E24F3B" stroke-width="2"/>
+      <text x="160" y="1262" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#E24F3B" letter-spacing=".14em" font-weight="600">NOT FOUND</text>
+      <text x="160" y="1278" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">reported as unknown,</text>
+      <text x="160" y="1289" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">never shown as fact</text>
+
+      <!-- YES → down → ANSWERED -->
+      <path d="M520,1192 L520,1240" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="530" y="1230" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="340" y="1240" width="360" height="60" rx="4"
+              fill="rgba(79,169,123,.12)" stroke="#4FA97B" stroke-width="1.5"/>
+        <text x="520" y="1263" text-anchor="middle" font-size="12.5">
+          Render answer + openable sources</text>
+        <text x="520" y="1281" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          each citation clickable — contractor opens the original email</text>
+      </g>
+      <line x1="520" y1="1300" x2="520" y2="1340" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <circle cx="520" cy="1382" r="42" fill="rgba(79,169,123,.15)"
+              stroke="#4FA97B" stroke-width="2"/>
+      <text x="520" y="1378" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#4FA97B" letter-spacing=".14em" font-weight="600">ANSWERED</text>
+      <text x="520" y="1394" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#4FA97B" opacity=".8">answer + N sources,</text>
+      <text x="520" y="1405" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#4FA97B" opacity=".8">roughly 4¢ per question</text>
+
+      <!-- annotation box: retrieval priority order -->
+      <g font-family="ui-monospace,monospace" font-size="10.5" fill="currentColor">
+        <rect x="30" y="220" width="240" height="240" fill="none"
+              stroke="currentColor" stroke-dasharray="3 3" opacity=".35"/>
+        <text x="46" y="242" font-size="11" fill="#E24F3B" letter-spacing=".12em">
+          20-SLOT BUDGET, FILLED IN ORDER</text>
+        <text x="46" y="268" opacity=".8">1. reserved recency (8 slots)</text>
+        <text x="46" y="286" opacity=".8">2. FTS bodies + subjects</text>
+        <text x="46" y="304" opacity=".8">3. FTS document text</text>
+        <text x="46" y="322" opacity=".8">4. backfill by recency</text>
+        <text x="46" y="358" font-size="10.5" opacity=".6">recency comes first because</text>
+        <text x="46" y="372" font-size="10.5" opacity=".6">relevance-only retrieval once</text>
+        <text x="46" y="386" font-size="10.5" opacity=".6">buried a "permit expired"</text>
+        <text x="46" y="400" font-size="10.5" opacity=".6">email under a 2025 closeout</text>
+        <text x="46" y="414" font-size="10.5" opacity=".6">thread matching "finished".</text>
+        <text x="46" y="440" font-size="10.5" fill="#E24F3B" opacity=".9">reserved slots cannot</text>
+        <text x="46" y="454" font-size="10.5" fill="#E24F3B" opacity=".9">be crowded out.</text>
+      </g>
+    
+</svg>

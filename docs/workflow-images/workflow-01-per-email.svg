@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 1400" width="1120" height="1400"
+     color="#2A2822" font-family="ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,monospace">
+  <title>01 - When one email arrives</title>
+  <rect x="0" y="0" width="1120" height="1400" fill="#FFFFFF"/>
+
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
+                markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- START pill -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="380" y="20" width="280" height="48" rx="24" fill="#FFFFFF"
+              stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="49" text-anchor="middle">Email pulled from IMAP folder</text>
+      </g>
+      <line x1="520" y1="68" x2="520" y2="108" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n2 decision: Message-ID seen? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="360" y="110" width="320" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="135" text-anchor="middle">Is this Message-ID already</text>
+        <text x="520" y="153" text-anchor="middle">in the message table?</text>
+      </g>
+
+      <!-- YES branch to n3 (right lane) -->
+      <path d="M680,140 L810,140 L810,220" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="726" y="132" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+      <!-- NO branch down to n4 -->
+      <path d="M520,170 L520,220" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="530" y="200" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+
+      <!-- n3 storage (right lane): add location row -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="680" y="220" width="260" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="810" y="247" text-anchor="middle">INSERT message_location row</text>
+      </g>
+      <line x1="810" y1="264" x2="810" y2="310" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- END-early circle: SAVED (dedup path) -->
+      <circle cx="810" cy="346" r="36" fill="rgba(79,169,123,.15)"
+              stroke="#4FA97B" stroke-width="2"/>
+      <text x="810" y="343" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#4FA97B" letter-spacing=".14em" font-weight="600">SAVED</text>
+      <text x="810" y="358" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#4FA97B" letter-spacing=".05em" opacity=".8">(had it)</text>
+
+      <!-- n4 action: parse body -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="380" y="220" width="280" height="44" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="247" text-anchor="middle">Decode headers · HTML → text</text>
+      </g>
+      <line x1="520" y1="264" x2="520" y2="300" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n5 storage: INSERT message -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="380" y="300" width="280" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="327" text-anchor="middle">INSERT message · FTS updates</text>
+      </g>
+      <line x1="520" y1="344" x2="520" y2="380" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n6 action: extract shared links -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="360" y="380" width="320" height="44" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="407" text-anchor="middle">Find Dropbox / WeTransfer / Drive URLs</text>
+      </g>
+      <line x1="520" y1="424" x2="520" y2="460" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n7 storage: INSERT shared_link -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="360" y="460" width="320" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="487" text-anchor="middle">INSERT shared_link (state = unfetched)</text>
+      </g>
+      <line x1="520" y1="504" x2="520" y2="540" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n8 decision: attachments? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="380" y="540" width="280" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="565" text-anchor="middle">Does this message carry</text>
+        <text x="520" y="583" text-anchor="middle">any non-inline attachments?</text>
+      </g>
+
+      <!-- NO branch: jog left, skip attachment loop, join at n13 -->
+      <path d="M380,570 L200,570 L200,1080 L380,1080" fill="none"
+            stroke="currentColor" opacity=".55" marker-end="url(#a1)"/>
+      <text x="212" y="562" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <text x="212" y="590" font-family="ui-monospace,monospace" font-size="10"
+            fill="currentColor" opacity=".65">skip attach loop</text>
+
+      <!-- YES branch: down into loop -->
+      <path d="M520,600 L520,640" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="530" y="628" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- loop bracket -->
+      <rect x="300" y="640" width="700" height="360" fill="none"
+            stroke="currentColor" stroke-dasharray="3 4" opacity=".35"/>
+      <text x="316" y="659" font-family="ui-monospace,monospace" font-size="10.5"
+            fill="currentColor" opacity=".65" letter-spacing=".12em">FOR EACH ATTACHMENT</text>
+
+      <!-- n9 decision: SHA-256 seen? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="380" y="680" width="280" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="705" text-anchor="middle">SHA-256 already in</text>
+        <text x="520" y="723" text-anchor="middle">the attachment table?</text>
+      </g>
+
+      <!-- YES branch: right lane -->
+      <path d="M660,710 L810,710 L810,760" fill="none" stroke="currentColor"
+            marker-end="url(#a1)"/>
+      <text x="706" y="702" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+      <!-- NO branch: down -->
+      <path d="M520,740 L520,780" fill="none" stroke="currentColor"
+            marker-end="url(#a1)"/>
+      <text x="530" y="770" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+
+      <!-- n10 storage right: link only -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="680" y="760" width="260" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="810" y="781" text-anchor="middle">INSERT message_attachment</text>
+        <text x="810" y="797" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">(bytes already stored, filename is per-send)</text>
+      </g>
+
+      <!-- n11 storage: store bytes -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="380" y="780" width="280" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="807" text-anchor="middle">Write bytes · INSERT attachment</text>
+      </g>
+      <line x1="520" y1="824" x2="520" y2="860" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n12 action: extract text -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="360" y="860" width="320" height="44" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="887" text-anchor="middle">Extract text · pypdf / python-docx / openpyxl</text>
+      </g>
+      <line x1="520" y1="904" x2="520" y2="940" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n13 storage: attachment_text with status -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="340" y="940" width="360" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="961" text-anchor="middle">INSERT attachment_text (status)</text>
+        <text x="520" y="976" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">ok · empty (scanned) · unsupported · error</text>
+      </g>
+
+      <!-- right lane merge back into main spine below loop -->
+      <path d="M810,804 L810,1020 L680,1020" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a1)"/>
+      <line x1="520" y1="984" x2="520" y2="1020" stroke="currentColor"/>
+      <line x1="520" y1="1020" x2="520" y2="1060" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n14 action: scan for identifiers -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="340" y="1060" width="360" height="44" rx="4"
+              fill="#F5F3EF" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="1081" text-anchor="middle">Regex-scan subject · body · filenames</text>
+        <text x="520" y="1096" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">8 identifier families: school, address, SCA, DOB, …</text>
+      </g>
+      <line x1="520" y1="1104" x2="520" y2="1140" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n15 decision: context filter -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#1C1B17">
+        <rect x="340" y="1140" width="360" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="1165" text-anchor="middle">Does the hit pass its context filter?</text>
+        <text x="520" y="1183" text-anchor="middle" font-size="11" fill="currentColor"
+              opacity=".8">(DOB word within 90 chars · borough digit 1–5 · …)</text>
+      </g>
+
+      <!-- NO → left → discarded -->
+      <path d="M340,1170 L180,1170 L180,1235" fill="none" stroke="currentColor"
+            opacity=".7" marker-end="url(#a1)"/>
+      <text x="200" y="1162" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <!-- YES → down -->
+      <path d="M520,1200 L520,1240" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="530" y="1228" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- discarded pill (small red circle-ish end) -->
+      <circle cx="180" cy="1270" r="34" fill="rgba(226,79,59,.15)"
+              stroke="#E24F3B" stroke-width="2"/>
+      <text x="180" y="1268" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="10" fill="#E24F3B" letter-spacing=".14em" font-weight="600">DROPPED</text>
+      <text x="180" y="1283" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="8.5" fill="#E24F3B" opacity=".8">noise, not a job</text>
+
+      <!-- n16 storage: INSERT candidate -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#1C1B17">
+        <rect x="380" y="1240" width="280" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="1267" text-anchor="middle">INSERT candidate</text>
+      </g>
+      <line x1="520" y1="1284" x2="520" y2="1320" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- END circle CAPTURED -->
+      <circle cx="520" cy="1356" r="36" fill="rgba(79,169,123,.15)"
+              stroke="#4FA97B" stroke-width="2"/>
+      <text x="520" y="1353" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#4FA97B" letter-spacing=".14em" font-weight="600">CAPTURED</text>
+      <text x="520" y="1368" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="8.5" fill="#4FA97B" opacity=".8">ready to be organised</text>
+    
+</svg>

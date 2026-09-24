@@ -1,0 +1,822 @@
+<meta charset="utf-8">
+<title>How Asbuilt Works</title>
+<style>
+  :root{
+    --bg:#0A0A0B; --panel:#100F11; --panel-2:#161519;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.15);
+    --text:#E9E6E1; --muted:#8C8781; --dim:#5B5752;
+    --accent:#E24F3B; --accent-lit:#FF6E58;
+    --ok:#4FA97B; --warn:#C9964A; --db:#956EBE; --info:#5A9BD4;
+    --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:14px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1160px;margin:0 auto;padding:56px 24px 100px}
+
+  h1{font:600 clamp(28px,4.6vw,44px)/1.05 var(--mono);letter-spacing:-.02em;
+    margin:0 0 16px;text-wrap:balance}
+  h2{font:600 12px/1 var(--mono);letter-spacing:.24em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px}
+  h3{font:500 20px/1.3 var(--mono);letter-spacing:-.01em;margin:0 0 18px}
+  p{margin:0 0 14px;max-width:66ch;color:#C9C5BF}
+  p.lede{font-size:16.5px;line-height:1.62;color:var(--muted);max-width:62ch}
+  strong{color:var(--text);font-weight:600}
+  em{color:var(--text);font-style:italic}
+  code{font:12.5px/1 var(--mono);color:var(--text);background:var(--panel-2);
+    padding:2px 6px;border:1px solid var(--line)}
+
+  header{border-bottom:1px solid var(--line-2);padding-bottom:36px;margin-bottom:48px}
+  .eyebrow{font:600 11px/1 var(--mono);letter-spacing:.3em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:22px}
+
+  /* legend */
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+  .lg{background:var(--bg);padding:14px 16px;display:flex;align-items:center;gap:12px}
+  .lg .sw{width:20px;height:20px;flex:none;border:1.5px solid currentColor;border-radius:3px}
+  .lg .sw.dec{color:var(--warn);background:rgba(201,150,74,.10)}
+  .lg .sw.act{color:var(--muted);background:var(--panel-2)}
+  .lg .sw.db{color:var(--db);background:rgba(149,110,190,.10)}
+  .lg .sw.mo{color:var(--accent);background:rgba(226,79,59,.12)}
+  .lg .sw.circ{border-radius:50%;color:var(--ok);background:rgba(79,169,123,.15)}
+  .lg .sw.circn{border-radius:50%;color:var(--accent);background:rgba(226,79,59,.15)}
+  .lg .k{font:11px/1.35 var(--mono);letter-spacing:.06em;color:var(--muted);
+    text-transform:uppercase}
+  .lg .k b{display:block;color:var(--text);font-weight:600;letter-spacing:.14em}
+
+  section{margin-bottom:64px;scroll-margin-top:24px}
+  .rule{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .rule::after{content:"";flex:1;height:1px;background:var(--line-2)}
+
+  figure{margin:0 0 20px;border:1px solid var(--line);background:var(--panel);
+    padding:22px 20px 14px}
+  .scroll{overflow-x:auto;overscroll-behavior-x:contain}
+  figure svg{display:block;max-width:100%;height:auto;color:var(--muted)}
+  figure svg.wide{min-width:820px}
+  figure svg.med{min-width:640px}
+  figcaption{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:13px;color:var(--muted);max-width:78ch}
+  figcaption b{color:var(--text);font-weight:600}
+
+  .files{width:100%;border-collapse:collapse;font:12.5px/1.5 var(--mono);
+    margin-top:20px}
+  .files th{text-align:left;font-size:10.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--dim);font-weight:600;
+    padding:0 14px 10px 0;border-bottom:1px solid var(--line-2)}
+  .files td{padding:11px 14px 11px 0;border-bottom:1px solid var(--line);
+    color:var(--muted);vertical-align:top}
+  .files td:first-child{color:var(--text)}
+
+  @media (max-width:720px){
+    .wrap{padding:36px 16px 80px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Asbuilt · Workflow · August 2026</div>
+  <h1>How Asbuilt works</h1>
+  <p class="lede">Three flows. Mail is captured whenever it arrives, the knowledge
+  layer is rebuilt whenever mail changes, and a question runs through the assistant
+  whenever the contractor asks. Every branch below is a decision the code actually
+  makes — no summarised steps, no rounded-off logic.</p>
+
+  <div class="legend">
+    <div class="lg"><span class="sw dec"></span><span class="k"><b>Decision</b>a rule, no model</span></div>
+    <div class="lg"><span class="sw act"></span><span class="k"><b>Action</b>parse, clean, extract</span></div>
+    <div class="lg"><span class="sw db"></span><span class="k"><b>DB write</b>touches SQLite</span></div>
+    <div class="lg"><span class="sw mo"></span><span class="k"><b>Model call</b>claude-sonnet-5</span></div>
+    <div class="lg"><span class="sw circ"></span><span class="k"><b>Stored / answered</b>terminal state</span></div>
+    <div class="lg"><span class="sw circn"></span><span class="k"><b>Dropped / not found</b>terminal state</span></div>
+  </div>
+</header>
+
+<!-- ============================================================ -->
+<!-- FLOWCHART 1 : PER EMAIL                                       -->
+<!-- ============================================================ -->
+<section>
+  <div class="rule"><h2>01 &nbsp;When one email arrives</h2></div>
+  <h3>Per-message: ingest, dedupe, extract text, harvest identifiers</h3>
+  <p>Runs for every UID pulled off IMAP. The rule is <strong>capture never
+  fails</strong>: even a message the parser can't understand is stored and dealt
+  with later. Two dedupe keys do the heavy lifting — <code>Message-ID</code> for
+  the mail, <code>sha256</code> for the bytes.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1120 1400" class="wide" role="img"
+         aria-label="For each email pulled from IMAP: if the Message-ID is already stored, add a location row and stop; otherwise parse the body, insert the message, then loop each non-inline attachment through a SHA-256 dedupe and text-extraction pass, then scan subject, body, and filenames for candidate identifiers and store the ones that pass context filters.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
+                markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- START pill -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="380" y="20" width="280" height="48" rx="24" fill="#100F11"
+              stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="49" text-anchor="middle">Email pulled from IMAP folder</text>
+      </g>
+      <line x1="520" y1="68" x2="520" y2="108" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n2 decision: Message-ID seen? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="360" y="110" width="320" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="135" text-anchor="middle">Is this Message-ID already</text>
+        <text x="520" y="153" text-anchor="middle">in the message table?</text>
+      </g>
+
+      <!-- YES branch to n3 (right lane) -->
+      <path d="M680,140 L810,140 L810,220" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="726" y="132" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+      <!-- NO branch down to n4 -->
+      <path d="M520,170 L520,220" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="530" y="200" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+
+      <!-- n3 storage (right lane): add location row -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="680" y="220" width="260" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="810" y="247" text-anchor="middle">INSERT message_location row</text>
+      </g>
+      <line x1="810" y1="264" x2="810" y2="310" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- END-early circle: SAVED (dedup path) -->
+      <circle cx="810" cy="346" r="36" fill="rgba(79,169,123,.15)"
+              stroke="#4FA97B" stroke-width="2"/>
+      <text x="810" y="343" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#4FA97B" letter-spacing=".14em" font-weight="600">SAVED</text>
+      <text x="810" y="358" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#4FA97B" letter-spacing=".05em" opacity=".8">(had it)</text>
+
+      <!-- n4 action: parse body -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="380" y="220" width="280" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="247" text-anchor="middle">Decode headers · HTML → text</text>
+      </g>
+      <line x1="520" y1="264" x2="520" y2="300" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n5 storage: INSERT message -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="380" y="300" width="280" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="327" text-anchor="middle">INSERT message · FTS updates</text>
+      </g>
+      <line x1="520" y1="344" x2="520" y2="380" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n6 action: extract shared links -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="360" y="380" width="320" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="407" text-anchor="middle">Find Dropbox / WeTransfer / Drive URLs</text>
+      </g>
+      <line x1="520" y1="424" x2="520" y2="460" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n7 storage: INSERT shared_link -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="360" y="460" width="320" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="487" text-anchor="middle">INSERT shared_link (state = unfetched)</text>
+      </g>
+      <line x1="520" y1="504" x2="520" y2="540" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n8 decision: attachments? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="380" y="540" width="280" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="565" text-anchor="middle">Does this message carry</text>
+        <text x="520" y="583" text-anchor="middle">any non-inline attachments?</text>
+      </g>
+
+      <!-- NO branch: jog left, skip attachment loop, join at n13 -->
+      <path d="M380,570 L200,570 L200,1080 L380,1080" fill="none"
+            stroke="currentColor" opacity=".55" marker-end="url(#a1)"/>
+      <text x="212" y="562" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <text x="212" y="590" font-family="ui-monospace,monospace" font-size="10"
+            fill="currentColor" opacity=".65">skip attach loop</text>
+
+      <!-- YES branch: down into loop -->
+      <path d="M520,600 L520,640" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="530" y="628" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- loop bracket -->
+      <rect x="300" y="640" width="700" height="360" fill="none"
+            stroke="currentColor" stroke-dasharray="3 4" opacity=".35"/>
+      <text x="316" y="659" font-family="ui-monospace,monospace" font-size="10.5"
+            fill="currentColor" opacity=".65" letter-spacing=".12em">FOR EACH ATTACHMENT</text>
+
+      <!-- n9 decision: SHA-256 seen? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="380" y="680" width="280" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="705" text-anchor="middle">SHA-256 already in</text>
+        <text x="520" y="723" text-anchor="middle">the attachment table?</text>
+      </g>
+
+      <!-- YES branch: right lane -->
+      <path d="M660,710 L810,710 L810,760" fill="none" stroke="currentColor"
+            marker-end="url(#a1)"/>
+      <text x="706" y="702" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+      <!-- NO branch: down -->
+      <path d="M520,740 L520,780" fill="none" stroke="currentColor"
+            marker-end="url(#a1)"/>
+      <text x="530" y="770" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+
+      <!-- n10 storage right: link only -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="680" y="760" width="260" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="810" y="781" text-anchor="middle">INSERT message_attachment</text>
+        <text x="810" y="797" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">(bytes already stored, filename is per-send)</text>
+      </g>
+
+      <!-- n11 storage: store bytes -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="380" y="780" width="280" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="807" text-anchor="middle">Write bytes · INSERT attachment</text>
+      </g>
+      <line x1="520" y1="824" x2="520" y2="860" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n12 action: extract text -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="360" y="860" width="320" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="887" text-anchor="middle">Extract text · pypdf / python-docx / openpyxl</text>
+      </g>
+      <line x1="520" y1="904" x2="520" y2="940" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n13 storage: attachment_text with status -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="940" width="360" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="961" text-anchor="middle">INSERT attachment_text (status)</text>
+        <text x="520" y="976" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">ok · empty (scanned) · unsupported · error</text>
+      </g>
+
+      <!-- right lane merge back into main spine below loop -->
+      <path d="M810,804 L810,1020 L680,1020" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a1)"/>
+      <line x1="520" y1="984" x2="520" y2="1020" stroke="currentColor"/>
+      <line x1="520" y1="1020" x2="520" y2="1060" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n14 action: scan for identifiers -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="1060" width="360" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="1081" text-anchor="middle">Regex-scan subject · body · filenames</text>
+        <text x="520" y="1096" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">8 identifier families: school, address, SCA, DOB, …</text>
+      </g>
+      <line x1="520" y1="1104" x2="520" y2="1140" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- n15 decision: context filter -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="340" y="1140" width="360" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="1165" text-anchor="middle">Does the hit pass its context filter?</text>
+        <text x="520" y="1183" text-anchor="middle" font-size="11" fill="currentColor"
+              opacity=".8">(DOB word within 90 chars · borough digit 1–5 · …)</text>
+      </g>
+
+      <!-- NO → left → discarded -->
+      <path d="M340,1170 L180,1170 L180,1235" fill="none" stroke="currentColor"
+            opacity=".7" marker-end="url(#a1)"/>
+      <text x="200" y="1162" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <!-- YES → down -->
+      <path d="M520,1200 L520,1240" fill="none" stroke="currentColor" marker-end="url(#a1)"/>
+      <text x="530" y="1228" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- discarded pill (small red circle-ish end) -->
+      <circle cx="180" cy="1270" r="34" fill="rgba(226,79,59,.15)"
+              stroke="#E24F3B" stroke-width="2"/>
+      <text x="180" y="1268" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="10" fill="#E24F3B" letter-spacing=".14em" font-weight="600">DROPPED</text>
+      <text x="180" y="1283" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="8.5" fill="#E24F3B" opacity=".8">noise, not a job</text>
+
+      <!-- n16 storage: INSERT candidate -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="380" y="1240" width="280" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="1267" text-anchor="middle">INSERT candidate</text>
+      </g>
+      <line x1="520" y1="1284" x2="520" y2="1320" stroke="currentColor" marker-end="url(#a1)"/>
+
+      <!-- END circle CAPTURED -->
+      <circle cx="520" cy="1356" r="36" fill="rgba(79,169,123,.15)"
+              stroke="#4FA97B" stroke-width="2"/>
+      <text x="520" y="1353" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#4FA97B" letter-spacing=".14em" font-weight="600">CAPTURED</text>
+      <text x="520" y="1368" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="8.5" fill="#4FA97B" opacity=".8">ready to be organised</text>
+    </svg>
+    </div>
+    <figcaption><b>Two dedupe keys carry this whole flow.</b> Message-ID collapses copies
+    of the same email across INBOX and Sent into one row with multiple locations. SHA-256
+    collapses the same PDF forwarded twelve times into one stored file with twelve
+    filenames. Everything else is straight-line data movement — the only place the system
+    <em>decides</em> anything is the context filter at the bottom, which is what stops
+    <code>021000021</code> (a JPMorgan Chase routing number) from being read as a DOB job
+    number.</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================ -->
+<!-- FLOWCHART 2 : PER BATCH                                       -->
+<!-- ============================================================ -->
+<section>
+  <div class="rule"><h2>02 &nbsp;Once per batch — turning captures into knowledge</h2></div>
+  <h3>End of every refresh: what gets learned, what gets promoted, what gets thrown away</h3>
+  <p>Everything in flowchart 01 was deterministic per-email plumbing. This is where mail
+  actually becomes <em>organised</em>. Runs once at the end of every <code>refresh.py</code>,
+  after all new mail is stored. No model calls here either — every decision is a rule
+  applied against the captured corpus.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1120 1100" class="wide" role="img"
+         aria-label="After ingestion: learn per-sender boilerplate, then for each candidate check whether it was seen enough times and in a trusted source before promoting to a project or matching to an existing one, then propagate assignments along email threads.">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
+                markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- START -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="380" y="20" width="280" height="48" rx="24" fill="#100F11"
+              stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="49" text-anchor="middle">Ingestion batch finished</text>
+      </g>
+      <line x1="520" y1="68" x2="520" y2="108" stroke="currentColor" marker-end="url(#a2)"/>
+
+      <!-- LEARN BOILERPLATE section -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="110" width="360" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="135" text-anchor="middle" font-size="12.5">For each sender with ≥ 4 messages,</text>
+        <text x="520" y="153" text-anchor="middle" font-size="12.5">any line in ≥ 50% of them?</text>
+      </g>
+      <!-- YES -->
+      <path d="M520,170 L520,210" fill="none" stroke="currentColor" marker-end="url(#a2)"/>
+      <text x="530" y="200" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="210" width="360" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="230" text-anchor="middle">INSERT sender_boilerplate</text>
+        <text x="520" y="246" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">learned per sender — signature, disclaimer, "sent from…"</text>
+      </g>
+      <line x1="520" y1="254" x2="520" y2="290" stroke="currentColor" marker-end="url(#a2)"/>
+
+      <!-- PROMOTE candidates block -->
+      <rect x="180" y="290" width="780" height="500" fill="none"
+            stroke="currentColor" stroke-dasharray="3 4" opacity=".35"/>
+      <text x="196" y="311" font-family="ui-monospace,monospace" font-size="10.5"
+            fill="currentColor" opacity=".65" letter-spacing=".12em">
+        FOR EACH CANDIDATE IDENTIFIER
+      </text>
+
+      <!-- n1 decision: seen ≥3 times? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="380" y="330" width="280" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="355" text-anchor="middle">Seen ≥ 3 different times</text>
+        <text x="520" y="373" text-anchor="middle">across the corpus?</text>
+      </g>
+
+      <!-- NO → left → drop -->
+      <path d="M380,360 L240,360 L240,410" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a2)"/>
+      <text x="252" y="352" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <circle cx="240" cy="446" r="34" fill="rgba(226,79,59,.15)"
+              stroke="#E24F3B" stroke-width="2"/>
+      <text x="240" y="443" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="10" fill="#E24F3B" letter-spacing=".14em" font-weight="600">DROPPED</text>
+      <text x="240" y="458" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="8.5" fill="#E24F3B" opacity=".8">too rare</text>
+
+      <!-- YES → down -->
+      <path d="M520,390 L520,430" fill="none" stroke="currentColor" marker-end="url(#a2)"/>
+      <text x="530" y="420" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- n2 decision: first seen in subject/filename? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="360" y="430" width="320" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="455" text-anchor="middle">First observed in a subject</text>
+        <text x="520" y="473" text-anchor="middle">or a filename?</text>
+      </g>
+
+      <!-- NO → right → match existing only -->
+      <path d="M680,460 L810,460 L810,530" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a2)"/>
+      <text x="706" y="452" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="680" y="530" width="260" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="810" y="551" text-anchor="middle">Match an existing project</text>
+        <text x="810" y="567" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">bodies can match, never create</text>
+      </g>
+
+      <!-- YES → down → create project -->
+      <path d="M520,490 L520,530" fill="none" stroke="currentColor" marker-end="url(#a2)"/>
+      <text x="530" y="520" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="380" y="530" width="280" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="551" text-anchor="middle">INSERT project + alias</text>
+        <text x="520" y="567" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">confirmed = 0 until a human agrees</text>
+      </g>
+
+      <!-- both lanes merge to n3 assign -->
+      <path d="M810,574 L810,620 L680,620" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a2)"/>
+      <line x1="520" y1="574" x2="520" y2="620" stroke="currentColor"/>
+      <line x1="520" y1="620" x2="520" y2="660" stroke="currentColor" marker-end="url(#a2)"/>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="660" width="360" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="681" text-anchor="middle">INSERT message_project · attachment_project</text>
+        <text x="520" y="697" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">many-to-many at both levels</text>
+      </g>
+
+      <!-- Merge addresses -->
+      <line x1="520" y1="704" x2="520" y2="740" stroke="currentColor" marker-end="url(#a2)"/>
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="360" y="740" width="320" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="761" text-anchor="middle">Merge address candidates into projects</text>
+        <text x="520" y="776" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">if the address is also an alias of a known job</text>
+      </g>
+
+      <!-- outside loop bracket -->
+      <line x1="520" y1="790" x2="520" y2="830" stroke="currentColor" marker-end="url(#a2)"/>
+
+      <!-- Propagate via threads -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="830" width="360" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="855" text-anchor="middle">Any tagged message has an untagged reply</text>
+        <text x="520" y="873" text-anchor="middle">or an untagged parent in the same thread?</text>
+      </g>
+      <path d="M520,890 L520,930" fill="none" stroke="currentColor" marker-end="url(#a2)"/>
+      <text x="530" y="920" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="930" width="360" height="44" rx="4"
+              fill="rgba(149,110,190,.10)" stroke="#956EBE" stroke-width="1.5"/>
+        <text x="520" y="951" text-anchor="middle">Tag the sibling with the same project</text>
+        <text x="520" y="967" text-anchor="middle" font-size="10" fill="currentColor"
+              opacity=".7">method = "thread"</text>
+      </g>
+
+      <!-- END READY -->
+      <line x1="520" y1="974" x2="520" y2="1010" stroke="currentColor" marker-end="url(#a2)"/>
+      <circle cx="520" cy="1046" r="36" fill="rgba(79,169,123,.15)"
+              stroke="#4FA97B" stroke-width="2"/>
+      <text x="520" y="1043" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#4FA97B" letter-spacing=".14em" font-weight="600">READY</text>
+      <text x="520" y="1058" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="8.5" fill="#4FA97B" opacity=".8">questions can now be answered</text>
+    </svg>
+    </div>
+    <figcaption><b>The load-bearing rule is on the right.</b> Bodies can <em>match</em>
+    an existing job, but only subjects and filenames can ever <em>create</em> one — that
+    one asymmetry is what keeps signature blocks and boilerplate references from spawning
+    hundreds of phantom projects. Threads propagating assignments is a small effect (144
+    of 11,230 tags) but rescues replies that dropped the job number.</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================ -->
+<!-- FLOWCHART 3 : PER QUESTION                                    -->
+<!-- ============================================================ -->
+<section>
+  <div class="rule"><h2>03 &nbsp;When a question is asked</h2></div>
+  <h3>Per-query: resolve, retrieve, clean, model, validate</h3>
+  <p>Runs whenever the contractor types into the ask bar. The model is the last decision,
+  not the first — everything before it is deterministic, and everything after it is a
+  <em>check</em> on what the model returned. This is what makes an answer checkable:
+  every citation is validated against the exact set of messages that were shown to the
+  model.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1120 1580" class="wide" role="img"
+         aria-label="For each question: try to resolve it to a project via the alias table; retrieve messages by reserved recency, then FTS on bodies and subjects, then FTS on document text, then backfill; if nothing retrieved return not found; otherwise clean bodies, attach document text under budget, call the model with a structured output schema, validate every citation the model returns, and only show the answer if at least one citation survives.">
+      <defs>
+        <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6"
+                markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- START -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="380" y="20" width="280" height="48" rx="24" fill="#100F11"
+              stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="49" text-anchor="middle">User types a question</text>
+      </g>
+      <line x1="520" y1="68" x2="520" y2="108" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- n1 decision: alias match -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="340" y="110" width="360" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="135" text-anchor="middle">Does any alias in the project_alias table</text>
+        <text x="520" y="153" text-anchor="middle">match the question? (longest first · word boundary)</text>
+      </g>
+
+      <!-- NO → right lane: whole mailbox search -->
+      <path d="M700,140 L830,140 L830,220" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="740" y="132" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <text x="740" y="152" font-family="ui-monospace,monospace" font-size="10"
+            fill="currentColor" opacity=".7">no job scope</text>
+
+      <!-- YES → down -->
+      <path d="M520,170 L520,210" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="530" y="200" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- LEFT LANE (project-scoped) -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="330" y="210" width="380" height="60" rx="6"
+              fill="rgba(226,79,59,.14)" stroke="#E24F3B" stroke-width="1.5"/>
+        <text x="520" y="235" text-anchor="middle" font-size="12.5">Reserve 8 recency slots</text>
+        <text x="520" y="253" text-anchor="middle" font-size="11" fill="currentColor" opacity=".85">
+          the project's newest 8 messages, claimed before search</text>
+      </g>
+      <line x1="520" y1="270" x2="520" y2="310" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="360" y="310" width="320" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="331" text-anchor="middle">FTS message_fts, scoped to project</text>
+        <text x="520" y="346" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">
+          add to the 20-slot budget by rank</text>
+      </g>
+      <line x1="520" y1="354" x2="520" y2="390" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="360" y="390" width="320" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="411" text-anchor="middle">FTS attachment_fts, scoped to project</text>
+        <text x="520" y="426" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">
+          catches "see attached" mail whose text is only in the PDF</text>
+      </g>
+      <line x1="520" y1="434" x2="520" y2="470" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="360" y="470" width="320" height="44" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="491" text-anchor="middle">Backfill remaining slots by recency</text>
+      </g>
+
+      <!-- RIGHT LANE (no project) -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="740" y="220" width="220" height="60" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="850" y="245" text-anchor="middle">FTS whole mailbox,</text>
+        <text x="850" y="263" text-anchor="middle">bodies + subjects</text>
+      </g>
+      <line x1="850" y1="280" x2="850" y2="320" stroke="currentColor" marker-end="url(#a3)"/>
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="740" y="320" width="220" height="60" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="850" y="345" text-anchor="middle">FTS whole mailbox,</text>
+        <text x="850" y="363" text-anchor="middle">document text</text>
+      </g>
+
+      <!-- lanes MERGE -->
+      <line x1="520" y1="514" x2="520" y2="580" stroke="currentColor"/>
+      <path d="M850,380 L850,554 L520,554" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a3)"/>
+      <line x1="520" y1="554" x2="520" y2="600" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- n7 decision: any results? -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="380" y="600" width="280" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="625" text-anchor="middle">Any messages retrieved?</text>
+        <text x="520" y="643" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">
+          (of the 20-slot budget)</text>
+      </g>
+
+      <!-- NO → left → NOT FOUND circle -->
+      <path d="M380,630 L200,630 L200,700" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a3)"/>
+      <text x="220" y="622" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <circle cx="200" cy="736" r="42" fill="rgba(226,79,59,.15)"
+              stroke="#E24F3B" stroke-width="2"/>
+      <text x="200" y="732" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#E24F3B" letter-spacing=".14em" font-weight="600">NOT FOUND</text>
+      <text x="200" y="748" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">"I couldn't find any</text>
+      <text x="200" y="759" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">messages about that"</text>
+
+      <!-- YES → down -->
+      <path d="M520,660 L520,700" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="530" y="690" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <!-- Clean bodies -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="320" y="700" width="400" height="76" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="721" text-anchor="middle" font-size="12.5">Clean each retrieved message</text>
+        <text x="520" y="740" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · strip quoted history at "On X wrote:" markers</text>
+        <text x="520" y="754" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · drop this sender's learned boilerplate lines</text>
+        <text x="520" y="768" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · replace tracking URLs · cap body at 1,200 chars</text>
+      </g>
+      <line x1="520" y1="776" x2="520" y2="812" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- Attach document text under budget -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="320" y="812" width="400" height="76" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="833" text-anchor="middle" font-size="12.5">Attach document text under budget</text>
+        <text x="520" y="852" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · 4,000 chars per doc that matched the question</text>
+        <text x="520" y="866" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · 800 for incidental attachments · 30,000 total cap</text>
+        <text x="520" y="880" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          · scans labelled "[text not readable]" — never sent as blank</text>
+      </g>
+      <line x1="520" y1="888" x2="520" y2="924" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- MODEL CALL -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="924" width="360" height="76" rx="4"
+              fill="rgba(226,79,59,.14)" stroke="#E24F3B" stroke-width="1.5"/>
+        <text x="520" y="947" text-anchor="middle" font-size="13" fill="#FF6E58"
+              letter-spacing=".05em">claude-sonnet-5</text>
+        <text x="520" y="965" text-anchor="middle" font-size="11" fill="currentColor" opacity=".85">
+          structured output: { answer, message_ids[], found }</text>
+        <text x="520" y="982" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">
+          system prompt: use only these messages · cite everything</text>
+        <text x="520" y="994" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">
+          absence of evidence is a finding, not a gap to fill</text>
+      </g>
+      <line x1="520" y1="1000" x2="520" y2="1036" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- Validate citations -->
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="320" y="1036" width="400" height="60" rx="4"
+              fill="#161519" stroke="currentColor" stroke-width="1"/>
+        <text x="520" y="1058" text-anchor="middle" font-size="12.5">
+          Validate every citation</text>
+        <text x="520" y="1076" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          drop any message_id not in the retrieved set (invented IDs happen)</text>
+      </g>
+      <line x1="520" y1="1096" x2="520" y2="1132" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <!-- Final decision: citations survived AND found=true -->
+      <g font-family="ui-monospace,monospace" font-size="12.5" fill="#E9E6E1">
+        <rect x="320" y="1132" width="400" height="60" rx="6"
+              fill="rgba(201,150,74,.10)" stroke="#C9964A" stroke-width="1.5"/>
+        <text x="520" y="1157" text-anchor="middle">At least one citation survived AND</text>
+        <text x="520" y="1175" text-anchor="middle">the model said found = true?</text>
+      </g>
+
+      <!-- NO → left → NOT FOUND -->
+      <path d="M320,1162 L160,1162 L160,1230" fill="none" stroke="currentColor"
+            opacity=".75" marker-end="url(#a3)"/>
+      <text x="180" y="1154" font-family="ui-monospace,monospace" font-size="11"
+            fill="#E24F3B" letter-spacing=".08em">NO</text>
+      <circle cx="160" cy="1266" r="42" fill="rgba(226,79,59,.15)"
+              stroke="#E24F3B" stroke-width="2"/>
+      <text x="160" y="1262" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#E24F3B" letter-spacing=".14em" font-weight="600">NOT FOUND</text>
+      <text x="160" y="1278" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">reported as unknown,</text>
+      <text x="160" y="1289" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#E24F3B" opacity=".8">never shown as fact</text>
+
+      <!-- YES → down → ANSWERED -->
+      <path d="M520,1192 L520,1240" fill="none" stroke="currentColor" marker-end="url(#a3)"/>
+      <text x="530" y="1230" font-family="ui-monospace,monospace" font-size="11"
+            fill="#4FA97B" letter-spacing=".08em">YES</text>
+
+      <g font-family="ui-monospace,monospace" font-size="12" fill="#E9E6E1">
+        <rect x="340" y="1240" width="360" height="60" rx="4"
+              fill="rgba(79,169,123,.12)" stroke="#4FA97B" stroke-width="1.5"/>
+        <text x="520" y="1263" text-anchor="middle" font-size="12.5">
+          Render answer + openable sources</text>
+        <text x="520" y="1281" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">
+          each citation clickable — contractor opens the original email</text>
+      </g>
+      <line x1="520" y1="1300" x2="520" y2="1340" stroke="currentColor" marker-end="url(#a3)"/>
+
+      <circle cx="520" cy="1382" r="42" fill="rgba(79,169,123,.15)"
+              stroke="#4FA97B" stroke-width="2"/>
+      <text x="520" y="1378" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="11" fill="#4FA97B" letter-spacing=".14em" font-weight="600">ANSWERED</text>
+      <text x="520" y="1394" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#4FA97B" opacity=".8">answer + N sources,</text>
+      <text x="520" y="1405" text-anchor="middle" font-family="ui-monospace,monospace"
+            font-size="9" fill="#4FA97B" opacity=".8">roughly 4¢ per question</text>
+
+      <!-- annotation box: retrieval priority order -->
+      <g font-family="ui-monospace,monospace" font-size="10.5" fill="currentColor">
+        <rect x="30" y="220" width="240" height="240" fill="none"
+              stroke="currentColor" stroke-dasharray="3 3" opacity=".35"/>
+        <text x="46" y="242" font-size="11" fill="#E24F3B" letter-spacing=".12em">
+          20-SLOT BUDGET, FILLED IN ORDER</text>
+        <text x="46" y="268" opacity=".8">1. reserved recency (8 slots)</text>
+        <text x="46" y="286" opacity=".8">2. FTS bodies + subjects</text>
+        <text x="46" y="304" opacity=".8">3. FTS document text</text>
+        <text x="46" y="322" opacity=".8">4. backfill by recency</text>
+        <text x="46" y="358" font-size="10.5" opacity=".6">recency comes first because</text>
+        <text x="46" y="372" font-size="10.5" opacity=".6">relevance-only retrieval once</text>
+        <text x="46" y="386" font-size="10.5" opacity=".6">buried a "permit expired"</text>
+        <text x="46" y="400" font-size="10.5" opacity=".6">email under a 2025 closeout</text>
+        <text x="46" y="414" font-size="10.5" opacity=".6">thread matching "finished".</text>
+        <text x="46" y="440" font-size="10.5" fill="#E24F3B" opacity=".9">reserved slots cannot</text>
+        <text x="46" y="454" font-size="10.5" fill="#E24F3B" opacity=".9">be crowded out.</text>
+      </g>
+    </svg>
+    </div>
+    <figcaption><b>The model is one node in a longer chain, not the whole system.</b>
+    Everything before it (resolve → retrieve → clean → attach) picks and shapes the exact
+    set of messages Claude will see; everything after it (validate → citation check) is a
+    guard against Claude claiming things not in that set. If validation empties the
+    citation list, the answer is dropped — even if it looked convincing.</figcaption>
+  </figure>
+</section>
+
+<!-- ============================================================ -->
+<!-- MAP TO FILES                                                  -->
+<!-- ============================================================ -->
+<section>
+  <div class="rule"><h2>04 &nbsp;Which flow lives in which file</h2></div>
+  <div class="scroll">
+    <table class="files">
+      <thead>
+        <tr><th>Flow</th><th>File</th><th>Runs</th><th>Real numbers</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>01 · per email</td><td>ingest.py</td><td>every refresh</td>
+          <td>19,925 messages · 13,385 unique files · 3,770 shared links</td></tr>
+        <tr><td>01 · per attachment</td><td>extract_documents.py</td><td>every refresh</td>
+          <td>8,488 readable · 1,500 scanned · 2,522 unsupported · 125 errors</td></tr>
+        <tr><td>01 · per email</td><td>extract_candidates.py</td><td>every refresh</td>
+          <td>31,810 candidates · body 20,328 · subject 8,402 · filename 3,080</td></tr>
+        <tr><td>02 · learn</td><td>learn_boilerplate.py</td><td>end of batch</td>
+          <td>3,020 boilerplate lines across 396 senders</td></tr>
+        <tr><td>02 · promote + propagate</td><td>resolve_projects.py</td><td>end of batch</td>
+          <td>510 projects · 2,237 aliases · 11,230 tags · 158 live jobs</td></tr>
+        <tr><td>03 · per question</td><td>assistant.py</td><td>on user input</td>
+          <td>~20 msgs read · ~8,600 tokens in · ~4¢ per question</td></tr>
+        <tr><td>03 · interface</td><td>app.py</td><td>Flask, LAN, password-locked</td>
+          <td>7 routes · 30-day sessions · plain HTTP, own network only</td></tr>
+        <tr><td>everything · coordinator</td><td>refresh.py</td><td>on demand</td>
+          <td>stops on first failure · idempotent · seconds after the first run</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<p style="color:var(--dim);font:11px/1.7 var(--mono);letter-spacing:.1em;
+   border-top:1px solid var(--line);padding-top:20px">
+  All figures read directly from asbuilt.db on 15 August 2026.
+  Ingest spans 5 August 2020 to 15 August 2026. Everything runs locally.
+</p>
+
+</div>

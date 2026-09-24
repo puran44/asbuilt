@@ -1,18 +1,21 @@
 # Asbuilt
 
-**An AI assistant for the inboxes that never got one.**
+**AI email assitant for email providers that do not natively have one**
 
-Gmail and Outlook are adding AI features. Yahoo, AOL, and the many other IMAP-based providers that small businesses still rely on mostly are not. Asbuilt connects to any IMAP inbox, organizes years of email into clean project records, and answers plain-English questions with citations back to the original emails.
+Gmail and Outlook are adding AI features. Yahoo, AOL, and the many other IMAP-based providers that small businesses (specifically construction) still rely on mostly are not. Asbuilt connects to any IMAP inbox, organizes years of email into clean project records, and answers plain-English questions with citations back to the original emails.
 
 It was built for NYC specialty subcontractors (plumbers, electricians, HVAC shops), whose entire business often runs through one crowded inbox: bids, change orders, permits, submittals, and payment applications, all mixed with spam and service calls.
 
 ---
+## Status
+
+Asbuilt is an early-stage project. It has been developed and tested against a real NYC contractor's inbox of roughly 20,000 emails and 13,000 attachments. That data is private and is not included in this repository.
 
 ## What it does
 
-**Ask your inbox anything.** Type a question like *"When did the permit for Q690 expire?"* and get a short answer with clickable sources. Every claim links to the email it came from, so you can check it in one click.
+**Ask your inbox anything.** Type a question like *"When did the permit for (Project) expire?"* and get a short answer with clickable sources. Every claim links to the email it came from, so you can check it in one click.
 
-**Projects organize themselves.** Asbuilt reads subjects, bodies, and attachment names to detect job identifiers, then groups every related email and document under the right project. It handles the messy reality of construction email, where one job can go by 8 to 16 different names (`Q690`, `PS 690`, `P.S. 690 (Q)`, and so on).
+**Projects organize themselves.** Asbuilt reads subjects, bodies, and attachment names to detect job identifiers, then groups every related email and document under the right project. It handles the messy reality of construction email, where one job can go by many names due to the lack of standardization.
 
 **Attachments become searchable.** Text is extracted from PDFs, Word documents, and spreadsheets, so answers can come from a pay application or a submittal, not just the email that carried it.
 
@@ -20,7 +23,7 @@ It was built for NYC specialty subcontractors (plumbers, electricians, HVAC shop
 
 ---
 
-## Built to be trusted
+## Accuracy
 
 A wrong answer about a permit or a payment has real consequences, so Asbuilt is designed around a few rules:
 
@@ -69,7 +72,7 @@ When a question names a project, Asbuilt retrieves that project's most recent em
 
 ---
 
-## Getting started
+## How to start
 
 **1. Install dependencies**
 
@@ -140,6 +143,4 @@ On first launch, a login passphrase is printed to the terminal.
 
 ---
 
-## Status
 
-Asbuilt is an early-stage project. It has been developed and tested against a real NYC contractor's inbox of roughly 20,000 emails and 13,000 attachments. That data is private and is not included in this repository.

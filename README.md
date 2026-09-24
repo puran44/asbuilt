@@ -1,6 +1,6 @@
 # Asbuilt
 
-**AI email assitant for email providers that do not natively have one**
+**AI email assistant for email providers that do not natively have one**
 
 Gmail and Outlook are adding AI features. Yahoo, AOL, and the many other IMAP-based providers that small businesses (specifically construction) still rely on mostly are not. Asbuilt connects to any IMAP inbox, organizes years of email into clean project records, and answers plain-English questions with citations back to the original emails.
 

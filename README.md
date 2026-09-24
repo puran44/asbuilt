@@ -9,17 +9,17 @@ It was built for NYC specialty subcontractors (plumbers, electricians, HVAC shop
 ---
 ## Status
 
-Asbuilt is an early-stage project. It has been developed and tested against a real NYC contractor's inbox of roughly 20,000 emails and 13,000 attachments. That data is private and is not included in this repository.
+Asbuilt is an early stage project. It has been developed and tested against a real NYC contractor's inbox of roughly 20,000 emails and 13,000 attachments. That data is private and is not included in this repository.
 
 ## What it does
 
-**Ask your inbox anything.** Type a question like *"When did the permit for (Project) expire?"* and get a short answer with clickable sources. Every claim links to the email it came from, so you can check it in one click.
+**Retrieves deep, dug information from email** Type a question like *"When did the permit for (Project) expire?"* and get a short answer with clickable sources. Every claim links to the email it came from, so you can check it in one click.
 
-**Projects organize themselves.** Asbuilt reads subjects, bodies, and attachment names to detect job identifiers, then groups every related email and document under the right project. It handles the messy reality of construction email, where one job can go by many names due to the lack of standardization.
+**Organized by a project basis** Asbuilt reads subjects, bodies, and attachment names to detect job identifiers, then groups every related email and document under the right project. It handles the messy reality of construction email, where one job can go by many names due to the lack of standardization.
 
-**Attachments become searchable.** Text is extracted from PDFs, Word documents, and spreadsheets, so answers can come from a pay application or a submittal, not just the email that carried it.
+**Search attachments such as PDFs** Text is extracted from PDFs, Word documents, and spreadsheets, so answers can come from a pay application or a submittal, not just the email that carried it.
 
-**Works with any IMAP provider.** Yahoo, AOL, Gmail, and more. No OAuth integration or provider-specific API is required.
+**Works with IMAP mail providers** Yahoo, AOL, Gmail, and more. No OAuth integration or provider-specific API is required.
 
 ---
 
@@ -30,7 +30,7 @@ A wrong answer about a permit or a payment has real consequences, so Asbuilt is 
 - **Every answer is cited** The model returns the IDs of the emails it used, and each one is checked against what was actually retrieved. Invented citations are dropped, and an answer with no valid citations is reported as "not found" instead of being shown as fact.
 - **"I don't know is an answer** If the evidence isn't in the inbox, Asbuilt says so rather than guessing.
 - **Humans confirm** New projects are created as unconfirmed suggestions until a person approves them.
-- **Read-only access** Asbuilt never modifies or deletes anything in the connected mailbox.
+- **Read only access** Asbuilt never modifies or deletes anything in the connected mailbox.
 - **Data stays local** Email is stored in a local SQLite database, not a shared cloud service.
 
 ---

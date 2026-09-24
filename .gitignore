@@ -1,0 +1,29 @@
+# Credentials 
+.env
+*.env
+!.env.example
+
+# Ingested mail
+/data/
+/attachments/
+*.db
+*.db-wal
+*.db-shm
+*.eml
+*.mbox
+
+# Audit output 
+audit_*.txt
+*_audit.txt
+census*.txt
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db

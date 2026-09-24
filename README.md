@@ -27,11 +27,11 @@ Asbuilt is an early-stage project. It has been developed and tested against a re
 
 A wrong answer about a permit or a payment has real consequences, so Asbuilt is designed around a few rules:
 
-- **Every answer is cited.** The model returns the IDs of the emails it used, and each one is checked against what was actually retrieved. Invented citations are dropped, and an answer with no valid citations is reported as "not found" instead of being shown as fact.
-- **"I don't know" is an answer.** If the evidence isn't in the inbox, Asbuilt says so rather than guessing.
-- **Humans confirm, AI proposes.** New projects are created as unconfirmed suggestions until a person approves them.
-- **Read-only access.** Asbuilt never modifies or deletes anything in the connected mailbox.
-- **Your data stays local.** Email is stored in a local SQLite database, not a shared cloud service.
+- **Every answer is cited** The model returns the IDs of the emails it used, and each one is checked against what was actually retrieved. Invented citations are dropped, and an answer with no valid citations is reported as "not found" instead of being shown as fact.
+- **"I don't know is an answer** If the evidence isn't in the inbox, Asbuilt says so rather than guessing.
+- **Humans confirm** New projects are created as unconfirmed suggestions until a person approves them.
+- **Read-only access** Asbuilt never modifies or deletes anything in the connected mailbox.
+- **Data stays local** Email is stored in a local SQLite database, not a shared cloud service.
 
 ---
 

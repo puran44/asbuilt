@@ -43,19 +43,13 @@ Asbuilt runs in three stages.
 
 Each message is pulled over IMAP, deduplicated, and stored with its attachments and shared links (Dropbox, WeTransfer, Google Drive). Attachments are content-addressed by SHA-256, so a file sent ten times is stored once. The text of each message is then scanned for anything that looks like a job identifier.
 
-![Per-email workflow](docs/workflow-images/workflow-01-per-email.svg)
-
 ### 2. Organize into projects
 
 After each sync, Asbuilt learns each sender's signature and disclaimer lines so they don't pollute results. It then turns recurring identifiers into projects, links messages and documents to them, and extends project tags across email threads.
 
-![Per-batch workflow](docs/workflow-images/workflow-02-per-batch.svg)
-
 ### 3. Answer questions
 
 When a question names a project, Asbuilt retrieves that project's most recent emails plus the most relevant messages and documents, cleans them up, and sends them to Claude with instructions to answer only from that evidence. Citations are validated before anything is shown. A typical question costs about 4 cents.
-
-![Per-question workflow](docs/workflow-images/workflow-03-per-question.svg)
 
 ---
 
